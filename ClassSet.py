@@ -179,8 +179,6 @@ class Grid(object):
     def update(self,controlPointsList):
         for pts in controlPointsList:
             #change the walls state to make the maze
-            key1 = pts[0].gridIndex
-            key2 = pts[1].gridIndex
             key = (pts[0].gridIndex, pts[1].gridIndex)
             index = self.wallsDict[key]
             wall = self.walls[index]

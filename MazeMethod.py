@@ -43,22 +43,70 @@ def getRandomUnvisitedInteriorNeighbor(point,pointList):# !!! attention, it's no
         pass
     pass
 
-def getPointWithUnvisitedNeibors(pointList): # !!! attention, it's now only for interiorNeighbors
+def getPointWithUnvisitedNeibors(pointList, isInOrder=False): # !!! attention, it's now only for interiorNeighbors
     newPointList = []
     for pt in pointList:
         potentialNeighborList =  pt.interiorNeighbors
         visitedCount = 0
         for neighbor in potentialNeighborList:
             if neighbor.isVisited == True:
+                visitedCount =visitedCount + 1
+                pass
+            pass
+        if visitedCount == len(potentialNeighborList):
+            pass
+        else: newPointList.append(pt)
+    if isInOrder ==  False:
+        return gm.getRandomItem(newPointList)
+    else:
+        if len(newPointList) != 0:
+            return newPointList[-1]
+        else:
+            return None
+        pass
+    pass
+
+
+def getRandomUnchosenInteriorNeighbor(point,pointList):# !!! attention, it's now only for interiorNeighbors
+    potentialNeighborList = []
+    for neighbor in  point.interiorNeighbors:
+        if neighbor.isChosen == True:
+            pass
+        else:
+            potentialNeighborList.append(neighbor)
+        pass
+    if len(potentialNeighborList) == 0:
+        return None
+    else:
+        neighbor = gm.getRandomItem(potentialNeighborList)
+        index = pointList.index(neighbor)
+        pointList[index].isChosen = True
+        return neighbor
+        pass
+    pass
+
+def getPointWithUnchosenNeibors(pointList, isInOrder=False): # !!! attention, it's now only for interiorNeighbors
+    newPointList = []
+    for pt in pointList:
+        potentialNeighborList =  pt.interiorNeighbors
+        visitedCount = 0
+        for neighbor in potentialNeighborList:
+            if neighbor.isChosen == True:
                 visitedCount += 1
                 pass
             pass
         if visitedCount == len(potentialNeighborList):
             pass
         else: newPointList.append(pt)
-    return gm.getRandomItem(newPointList)
-
-
+    if isInOrder ==  False:
+        return gm.getRandomItem(newPointList)
+    else:
+        if len(newPointList) != 0:
+            return newPointList[-1]
+        else:
+            return None
+        pass
+    pass
 
 ''' These are methods to generate maze'''
 
@@ -204,11 +252,11 @@ def Wilson(grid, logicPointsList):
                     break
                 pass
             else: #neighbor.isVisited == True
-                resetPointsList = [pt for pt in visitedPointList if not (pt == neighbor or pt ==  start)]
+                index = visitedPointList.index(neighbor)
+                savedPoints = visitedPointList[0:(index+1)]
+                resetPointsList = visitedPointList[(index+1):]
                 for pt in resetPointsList: pt.isVisited = False
-                #neighbor.isVisited = True
-                #start.isVisited = True
-                visitedPointList = [start, neighbor]
+                visitedPointList = savedPoints
                 start = neighbor
         pass
     return controlPointsList
@@ -217,22 +265,76 @@ def Wilson(grid, logicPointsList):
 
 def huntAndKill(grid, logicPointsList):
     controlPointsList = []
-    visitedPointList = []
+    chosenPoints = []
     setInteriorNeighbors(logicPointsList)
     unChosenPointList = [pt for pt in logicPointsList]
     #initialize
     start = gm.getRandomItem(unChosenPointList)
     start.isChosen = True
+    chosenPoints.append(start)
     unChosenPointList.remove(start)
     #Recursing process
     while len(unChosenPointList) != 0:
-        neighbor = gm.getRandomItem(start)
+        neighbor = gm.getRandomItem(start.interiorNeighbors)
         if neighbor.isChosen == False:
             neighbor.isChosen = True
             controlPointsList.append(makeNeighbors(grid, start, neighbor))
             unChosenPointList.remove(neighbor)
+            chosenPoints.append(neighbor)
             start = neighbor
         else:
+            if len(chosenPoints) != 0:
+                newNeighbor = getPointWithUnchosenNeibors(chosenPoints)
+                start = getRandomUnchosenInteriorNeighbor(newNeighbor, logicPointsList)
+                controlPointsList.append(makeNeighbors(grid, start, newNeighbor))
+                start.isChosen =  True
+                chosenPoints.append(start)
+                unChosenPointList.remove(start)
+            else:
+                break
             pass
         pass
+    return controlPointsList
+    pass
+
+
+def recursiveBacktracker(grid, logicPointsList):
+    controlPointsList = []
+    visitedPointList = []
+    setInteriorNeighbors(logicPointsList)
+    unChosenPointList = [pt for pt in logicPointsList]
+    #initialize
+    start = gm.getRandomItem(unChosenPointList)
+    start.isVisited = True
+    visitedPointList.append(start)
+    unChosenPointList.remove(start)
+    # creating process
+    while len(unChosenPointList) != 0:
+        neighbor = gm.getRandomItem(start.interiorNeighbors)
+        if neighbor.isVisited == False:
+            neighbor.isVisited = True
+            controlPointsList.append(makeNeighbors(grid, start, neighbor))
+            unChosenPointList.remove(neighbor)
+            visitedPointList.append(neighbor)
+            start = neighbor
+        else:
+            neighbor = getRandomUnvisitedInteriorNeighbor(start, logicPointsList)
+            if neighbor != None:
+                neighbor.isVisited = True
+                controlPointsList.append(makeNeighbors(grid, start, neighbor))
+                unChosenPointList.remove(neighbor)
+                visitedPointList.append(neighbor)
+                start = neighbor
+            else:
+                newStart = getPointWithUnvisitedNeibors(visitedPointList, isInOrder=True)
+                if newStart != None:
+                    newNeighbor = getRandomUnvisitedInteriorNeighbor(newStart, logicPointsList)
+                    if newNeighbor != None:
+                        controlPointsList.append(makeNeighbors(grid, newStart, newNeighbor))
+                        unChosenPointList.remove(newNeighbor)
+                        newNeighbor.isVisited = True
+                        visitedPointList.append(newNeighbor)
+                        start = newNeighbor
+                pass
+    return controlPointsList
     pass
