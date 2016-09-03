@@ -49,6 +49,33 @@ class LogicPoint(Point):
         self.isEnd = False # wait to be changed on the users' demands
         self.isVisited = False # wait to be changed by PathMaker class
         self.isChosen = False # wait to be changed by PathMaker class
+        self.DijkstraIndex = int # wait to be given by Dijkstra analysis
+
+    def drawDijkstraIndex(self,fontHeight, layer='DijkstraIndex', color=(120,120,120)):
+        if rs.IsLayer(layer):
+            rs.LayerColor(layer, color)
+            pass
+        else:
+            rs.AddLayer(layer, color)
+        rs.CurrentLayer(layer)
+        rs.AddText(str(self.DijkstraIndex),self.position, height=fontHeight, justification=2)
+        pass
+
+    def drawDijkstraColor(self, width, height, color, maxIndex, layer='DijkstraColor' ):
+        if rs.IsLayer(layer):
+            rs.LayerColor(layer)
+            pass
+        else:
+            rs.AddLayer(layer)
+        rs.CurrentLayer(layer)
+        pass
+        drawColor = rm.setChoromeColor(self.DijkstraIndex, maxIndex, color)
+        drawPosition = (self.position[0]-width*0.5, self.position[1]-height*0.5, self.position[2])
+        rectGuid = rs.AddRectangle(drawPosition, width, height)
+        guid = rs.AddPlanarSrf(rectGuid)
+        rs.DeleteObject(rectGuid)
+        rs.ObjectColor(guid, drawColor)
+        pass
 
 
 class Line(object):
@@ -188,3 +215,8 @@ class Grid(object):
             position2 = pts[1].position
             path = Path((position1, position2), layer='Path', isDrawedOpen=False, openRatio=0.5, color=(0,255,0))
             self.paths.append(path)
+    def drawAnalysis(self, max, color = (200,150,255)):
+        for pt in self.interiorLogicPoints:
+            pt.drawDijkstraIndex(self.width/5)
+            pt.drawDijkstraColor(self.width, self.length, color, max, layer='DijkstraColor')
+        pass

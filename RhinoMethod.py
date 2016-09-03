@@ -37,3 +37,11 @@ def drawOpenLine(EndPoints, ratio, layer, color = None):
     rs.AddLine(pt1, pt1End)
     rs.AddLine(pt2, pt2End)
     pass
+
+
+def setChoromeColor(index, max, colorHBL, isChromed = False):
+    if isChromed == True:
+        colorNew = (colorHBL[0], colorHBL[1], colorHBL[2]/max*(max-index))
+    else: colorNew = (colorHBL[0]/max*index, colorHBL[1], colorHBL[2])
+    color = rs.ColorHLSToRGB (colorNew)
+    return color
